@@ -14,11 +14,11 @@ TYPES = {'int32': int,
 def create(filename):
     with open(filename, 'r') as f:
         description = parse(f.read())
-        return generate_class(description)
-        # Car = generate_class(description)
-        # car = Car('model', Car.BodyType.hatchback, 2008)
-        # car.previousOwner = car.Owner('Petya', 'Shram', 123)
-        # pass
+        # return generate_class(description)
+        Car = generate_class(description)
+        car = Car('model', Car.BodyType.hatchback, 2008)
+        car.previousOwner = car.Owner('Petya', 'Shram', 123)
+        pass
 
 
 def generate_class(class_description):
@@ -49,7 +49,16 @@ def generate_class(class_description):
                 raise Exception()
             setattr(self, key, args[i])
 
-    fields = dict(map(lambda x: (x.name, None), class_description.fields))
+    '''fields = dict(
+        map(lambda x: (x.name, types[x.type](x.default) if x.default is not None else None), class_description.fields))'''
+
+    fields = {}
+    for field in class_description.fields:
+        if field.type in enums.keys():
+            fields[field.name] = types[field.type][field.default] if field.default is not None else None
+        else:
+            fields[field.name] = types[field.type](field.default) if field.default is not None else None
+
     attr = {'__init__': init}
     attr.update(fields)
     attr.update(enums)
@@ -75,8 +84,8 @@ def parse(text):
     constructions.reverse()
     tree = Tree(constructions[0][0], constructions[0][1], constructions[0][2])
 
-    for i in range(len(constructions)):
-        print(constructions[i])
+    '''for i in range(len(constructions)):
+        print(constructions[i])'''
 
     for i in range(1, len(constructions)):
         tree.add_child(constructions[i][0], constructions[i][1], constructions[i][2])
@@ -87,19 +96,24 @@ def parse(text):
 def parse_message(text, classes, enums):
     fields = []
     text_split = re.split(r'[{};]', text)
-    class_name = re.search(r'message\s+(.+?)\s+', text_split[0])[1]
+    class_name = re.search(r'message\s+(.+)', text_split[0].strip())[1]
     for i in range(1, len(text_split)):
         field_text = text_split[i].strip()
         if not field_text:
             continue
 
-        a = re.search(r'(required|optional|repeated)\s+(.+?)\s+(.+?)\s+=\s+(.+?)', field_text)
+        a = re.search(r'(required|optional|repeated)\s+(.+?)\s+(.+?)\s*=\s*(.+?)', field_text)
         modifier = a[1]
         type_field = a[2]
         name_field = a[3]
         index_field = a[4]
+
+        b = re.search(r'default\s*=\s*(.+?)\s*\]', field_text)
+        default = b[1] if b is not None else None
+
         fields.append(FieldDescription(modifier=modifier, type=type_field,
-                                       name=name_field, index=index_field))
+                                       name=name_field, index=index_field,
+                                       default=default))
 
     return ClassDescription(name=class_name, fields=fields, classes=classes, enums=enums)
 
@@ -107,13 +121,13 @@ def parse_message(text, classes, enums):
 def parse_enum(text):
     values = []
     text_split = re.split(r'[{};]', text)
-    enum_name = re.search(r'enum\s+(.+?)\s+', text_split[0])[1]
+    enum_name = re.search(r'enum\s+(.+)', text_split[0].strip())[1]
     for i in range(1, len(text_split)):
         value_text = text_split[i].strip()
         if not value_text:
             continue
 
-        a = re.search(r'(.+?)\s+=\s+(.+?)', value_text)
+        a = re.search(r'(.+?)\s*=\s*(.+?)', value_text)
         name_value = a[1]
         index_value = a[2]
         values.append(ValueEnumDescription(name=name_value, index=index_value))
@@ -130,11 +144,12 @@ class ClassDescription:
 
 
 class FieldDescription:
-    def __init__(self, modifier, type, name, index):
+    def __init__(self, modifier, type, name, index, default=None):
         self.modifier = modifier
         self.type = type
         self.name = name
         self.index = index
+        self.default = default
 
 
 class EnumDescription:
@@ -194,4 +209,4 @@ class Tree:
 
 
 if __name__ == '__main__':
-    create('1.proto')
+    create('2.proto')
