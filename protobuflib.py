@@ -14,11 +14,11 @@ TYPES = {'int32': int,
 def create(filename):
     with open(filename, 'r') as f:
         description = parse(f.read())
-        #return generate_class(description)
-        Car = generate_class(description)
-        car = Car('model', Car.BodyType.hatchback, 2008)
-        car.previousOwner = car.Owner('Petya', 'Shram', 123)
-        pass
+        return generate_class(description)
+        # Car = generate_class(description)
+        # car = Car('model', Car.BodyType.hatchback, 2008)
+        # car.previousOwner = car.Owner('Petya', 'Shram', 123)
+        # pass
 
 
 def generate_class(class_description):
