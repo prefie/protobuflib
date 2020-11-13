@@ -60,6 +60,6 @@ def _generate_class(class_description):
 
 
 if __name__ == '__main__':
-    Car = create('examples/2.proto')
+    Car = create('examples/bad/incorrect3.proto')
     car = Car('model', Car.BodyType.hatchback, 2008)
     pass
