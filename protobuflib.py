@@ -24,33 +24,36 @@ def _generate_class(class_description):
 
     enums = {}
     for enum in class_description.enums:
-        enums[enum.name] = Enum(enum.name, list(map(lambda x: x.name, enum.values)))
+        enums[enum.name] = Enum(enum.name,
+                                list(map(lambda x: x.name, enum.values)))
 
     types = {}
     types.update(TYPES)
     types.update(classes)
     types.update(enums)
 
-    required_fields = sorted(
+    req_fields = sorted(
         filter(lambda x: x.modifier == 'required', class_description.fields),
         key=lambda x: x.index)
 
     def init(self, *args):
-        if len(args) != len(required_fields):
+        if len(args) != len(req_fields):
             raise Exception()
 
         for i in range(len(args)):
-            key, value = required_fields[i].name, types[required_fields[i].type]
+            key, value = req_fields[i].name, types[req_fields[i].type]
             if not isinstance(args[i], value):
                 raise Exception()
             setattr(self, key, args[i])
 
     fields = {}
     for field in class_description.fields:
-        if field.type in enums.keys():
-            fields[field.name] = types[field.type][field.default] if field.default is not None else None
+        if field.default is None:
+            fields[field.name] = None
+        elif field.type in enums.keys():
+            fields[field.name] = types[field.type][field.default]
         else:
-            fields[field.name] = types[field.type](field.default) if field.default is not None else None
+            fields[field.name] = types[field.type](field.default)
 
     attr = {'__init__': init}
     attr.update(fields)
@@ -60,6 +63,7 @@ def _generate_class(class_description):
 
 
 if __name__ == '__main__':
-    Car = create('examples/bad/incorrect3.proto')
-    car = Car('model', Car.BodyType.hatchback, 2008)
-    pass
+    Car = create('examples/good/car_normal.proto')
+    car1 = Car('model', Car.BodyType.hatchback, 2008)
+    Student = create('examples/good/student_normal.proto')
+    student1 = Student('Alex')

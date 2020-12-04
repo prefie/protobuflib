@@ -27,13 +27,15 @@ class Parser:
                 index = i + 1
 
         constructions.reverse()
-        tree = Tree(constructions[0][0], constructions[0][1], constructions[0][2])
+        tree = Tree(
+            constructions[0][0], constructions[0][1], constructions[0][2])
 
         '''for i in range(len(constructions)):
             print(constructions[i])'''
 
         for i in range(1, len(constructions)):
-            tree.add_child(constructions[i][0], constructions[i][1], constructions[i][2])
+            tree.add_child(
+                constructions[i][0], constructions[i][1], constructions[i][2])
 
         return tree.get_description()  # Вернёт внутреннее представление класса
 
@@ -47,7 +49,9 @@ class Parser:
             if not field_text:
                 continue
 
-            a = re.search(r'(required|optional|repeated)\s+(.+?)\s+(.+?)\s*=\s*(.+?)', field_text)
+            a = re.search(
+                r'(required|optional|repeated)\s+(.+?)\s+(.+?)\s*=\s*(.+?)',
+                field_text)
             modifier = a[1]
             type_field = a[2]
             name_field = a[3]
@@ -60,7 +64,8 @@ class Parser:
                                            name=name_field, index=index_field,
                                            default=default))
 
-        return ClassDescription(name=class_name, fields=fields, classes=classes, enums=enums)
+        return ClassDescription(name=class_name, fields=fields,
+                                classes=classes, enums=enums)
 
     @staticmethod
     def parse_enum(text):
@@ -75,7 +80,8 @@ class Parser:
             a = re.search(r'(.+?)\s*=\s*(.+?)', value_text)
             name_value = a[1]
             index_value = a[2]
-            values.append(ValueEnumDescription(name=name_value, index=index_value))
+            values.append(ValueEnumDescription(
+                name=name_value, index=index_value))
 
         return EnumDescription(name=enum_name, values=values)
 
@@ -100,7 +106,7 @@ class Tree:
 
         self.children.append(Tree(begin, end, value))
 
-        self.value = self.value.replace(value, '')  # Чтобы у родителей не было повторений сообщений детей
+        self.value = self.value.replace(value, '')
         return True
 
     def get_description(self):
